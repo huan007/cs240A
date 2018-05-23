@@ -84,6 +84,7 @@ main(int argc, char *argv[])
   stream = stdin;
   bpType = STATIC;
   verbose = 0;
+  char* filename;
 
   // Process cmdline Arguments
   for (int i = 1; i < argc; ++i) {
@@ -99,11 +100,17 @@ main(int argc, char *argv[])
     } else {
       // Use as input file
       stream = fopen(argv[i], "r");
+	  filename = argv[i];
     }
   }
 
   // Initialize the predictor
   init_predictor();
+  printf("-----------------%s-----------------\n", filename);
+  //printf("Initialized predictors\n");
+  //printf("buf: %p\n", buf);
+  buf = malloc (40960);
+  //printf("buf: %p\n", buf);
 
   uint32_t num_branches = 0;
   uint32_t mispredictions = 0;
@@ -132,6 +139,8 @@ main(int argc, char *argv[])
   printf("Incorrect:       %10d\n", mispredictions);
   float mispredict_rate = 100*((float)mispredictions / (float)num_branches);
   printf("Misprediction Rate: %7.3f\n", mispredict_rate);
+  printf("PHT Usage: %d/%d slots used\n", slotsUsed(), PHTSIZE);
+  printf("Interference: %d/%d slots was interfered\n", getInterference(), PHTSIZE);
 
   // Cleanup
   fclose(stream);

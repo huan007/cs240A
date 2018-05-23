@@ -24,6 +24,11 @@ extern const char *email;
 //------------------------------------//
 #define NOTTAKEN  0
 #define TAKEN     1
+#define FALSE 	  0
+#define TRUE 	  1
+#define PHTSIZE 2048
+#define CUS_LOCALSIZE 256
+#define CUS_L2SIZE 16
 
 // The Different Predictor Types
 #define STATIC      0
@@ -67,4 +72,6 @@ uint8_t make_prediction(uint32_t pc);
 //
 void train_predictor(uint32_t pc, uint8_t outcome);
 
+int slotsUsed();
+int getInterference();
 #endif
