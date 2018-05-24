@@ -139,8 +139,8 @@ main(int argc, char *argv[])
   printf("Incorrect:       %10d\n", mispredictions);
   float mispredict_rate = 100*((float)mispredictions / (float)num_branches);
   printf("Misprediction Rate: %7.3f\n", mispredict_rate);
-  fprintf(stderr, "PHT Usage: %d/%d slots used\n", slotsUsed(), PHTSIZE);
-  fprintf(stderr, "Interference: %d/%d slots was interfered\n", getInterference(), PHTSIZE);
+  fprintf(stderr, "PHT Usage: %d/%d slots used\n", slotsUsed(), getSize());
+  fprintf(stderr, "Interference: %d/%d slots was interfered\n", getInterference(), getSize());
 
   // Cleanup
   fclose(stream);

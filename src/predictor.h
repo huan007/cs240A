@@ -26,7 +26,6 @@ extern const char *email;
 #define TAKEN     1
 #define FALSE 	  0
 #define TRUE 	  1
-#define PHTSIZE 2048
 #define CUS_LOCALSIZE 256
 #define CUS_L2SIZE 16
 
@@ -74,4 +73,5 @@ void train_predictor(uint32_t pc, uint8_t outcome);
 
 int slotsUsed();
 int getInterference();
+int getSize();
 #endif

@@ -10,6 +10,8 @@
 #include "predictor.h"
 
 #define PCBITS 8
+#define DEBUG 0
+#define K20 20000
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
 uint8_t predict_huan(uint32_t pc);
@@ -47,7 +49,8 @@ int verbose;
 //
 //Gshare variables
 uint32_t history;
-char pht[PHTSIZE]; 
+char pht[K20]; 
+int PHTSIZE = 2048;
 
 //Custom Variables
 uint32_t localTable[CUS_LOCALSIZE];
@@ -55,11 +58,11 @@ char* l2List[CUS_LOCALSIZE];
 
 
 //Logging variables
-int seen[PHTSIZE];
+int seen[K20];
 int counterSeen = 0;
-uint32_t log_pc  [PHTSIZE];
-uint32_t log_pat [PHTSIZE];
-char 	 log_bool[PHTSIZE];
+uint32_t log_pc  [K20];
+uint32_t log_pat [K20];
+char 	 log_bool[K20];
 int 	 log_inteferece;
 
 
@@ -170,6 +173,11 @@ int slotsUsed()
 int getInterference()
 {
 	return log_inteferece;
+}
+
+int getSize()
+{
+	return PHTSIZE;
 }
 
 uint8_t predict_gshare(uint32_t pc)
