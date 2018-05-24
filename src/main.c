@@ -133,6 +133,7 @@ main(int argc, char *argv[])
     // Train the predictor
     train_predictor(pc, outcome);
   }
+  free(buf);
 
   // Print out the mispredict statistics
   printf("Branches:        %10d\n", num_branches);
@@ -144,7 +145,7 @@ main(int argc, char *argv[])
 
   // Cleanup
   fclose(stream);
-  free(buf);
+  clean();
 
   return 0;
 }

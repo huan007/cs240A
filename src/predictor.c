@@ -10,7 +10,7 @@
 #include "predictor.h"
 
 #define PCBITS 8
-#define DEBUGMODE 0
+#define DEBUGMODE 1
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
 uint8_t predict_huan(uint32_t pc);
@@ -100,7 +100,6 @@ init_predictor()
 	log_pc   = malloc(sizeof(uint32_t) * PHTSIZE);
 	log_pat  = malloc(sizeof(uint32_t) * PHTSIZE);
 	log_bool = malloc(sizeof(char) * PHTSIZE);
-	fprintf(stderr, "Bits: %d\nSize: %d\n", ghistoryBits, getPHTSize());
 
 	memset(pht, WN, (sizeof(char) * PHTSIZE));
 	memset(seen, 0, (sizeof(int) * PHTSIZE));
@@ -314,4 +313,17 @@ void train_huan(uint32_t pc, uint8_t outcome)
 	//Update pattern history register
 	history = (history << 1) + outcome;
 	update(&(table[tableIndex]), outcome);
+}
+
+void clean()
+{
+	free(pht);
+	free(seen);
+	free(log_pc);
+	free(log_pat);
+	free(log_bool);
+	//Custom setup
+	int i = 0;
+	for (i = 0; i < CUS_LOCALSIZE; i++)
+		free(l2List[i]);
 }
