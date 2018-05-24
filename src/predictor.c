@@ -10,7 +10,7 @@
 #include "predictor.h"
 
 #define PCBITS 8
-#define DEBUGMODE 1
+#define DEBUGMODE 0
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
 uint8_t predict_huan(uint32_t pc);
