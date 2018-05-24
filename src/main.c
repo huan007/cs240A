@@ -106,11 +106,11 @@ main(int argc, char *argv[])
 
   // Initialize the predictor
   init_predictor();
-  printf("-----------------%s-----------------\n", filename);
-  //printf("Initialized predictors\n");
-  //printf("buf: %p\n", buf);
+  fprintf(stderr, "-----------------%s-----------------\n", filename);
+  //fprintf(stderr, "Initialized predictors\n");
+  //fprintf(stderr, "buf: %p\n", buf);
   buf = malloc (40960);
-  //printf("buf: %p\n", buf);
+  //fprintf(stderr, "buf: %p\n", buf);
 
   uint32_t num_branches = 0;
   uint32_t mispredictions = 0;
@@ -139,8 +139,8 @@ main(int argc, char *argv[])
   printf("Incorrect:       %10d\n", mispredictions);
   float mispredict_rate = 100*((float)mispredictions / (float)num_branches);
   printf("Misprediction Rate: %7.3f\n", mispredict_rate);
-  printf("PHT Usage: %d/%d slots used\n", slotsUsed(), PHTSIZE);
-  printf("Interference: %d/%d slots was interfered\n", getInterference(), PHTSIZE);
+  fprintf(stderr, "PHT Usage: %d/%d slots used\n", slotsUsed(), PHTSIZE);
+  fprintf(stderr, "Interference: %d/%d slots was interfered\n", getInterference(), PHTSIZE);
 
   // Cleanup
   fclose(stream);
