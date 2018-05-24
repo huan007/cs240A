@@ -10,6 +10,7 @@
 #include "predictor.h"
 
 #define PCBITS 8
+#define DEBUGMODE 0
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
 uint8_t predict_huan(uint32_t pc);
@@ -198,19 +199,22 @@ uint8_t predict_gshare(uint32_t pc)
 
 	unsigned int index = (hist ^ addr) % PHTSIZE;
 
-	//Log what is first seen at the pHT slot
-	if (log_pc[index] == 0 && log_pat[index] == 0)
+	if (DEBUGMODE)
 	{
-		log_pc [index] = addr;
-		log_pat[index] = hist;
-	}
-	//Different PC or differet pattern map to the same slot
-	else if (log_pc[index] != addr || log_pat[index] != hist)
-	{
-		if (log_bool[index] == FALSE)
+		//Log what is first seen at the pHT slot
+		if (log_pc[index] == 0 && log_pat[index] == 0)
 		{
-			log_bool[index] = TRUE;
-			log_inteferece++;
+			log_pc [index] = addr;
+			log_pat[index] = hist;
+		}
+		//Different PC or differet pattern map to the same slot
+		else if (log_pc[index] != addr || log_pat[index] != hist)
+		{
+			if (log_bool[index] == FALSE)
+			{
+				log_bool[index] = TRUE;
+				log_inteferece++;
+			}
 		}
 	}
 	if (pht[index] > WN)
@@ -265,20 +269,22 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 	history = (history << 1) + outcome;
 	update(&(pht[index]), outcome);
 
-	//Logging
-	int i = 0;
-	for (i = 0; i < counterSeen; i++)
+	if (DEBUGMODE)
 	{
-		//Check in the seen list to see if index show up
-		if (seen[i] == index)
-			//If index is already in there, then we have used that slot
-			return;
+		//Logging
+		int i = 0;
+		for (i = 0; i < counterSeen; i++)
+		{
+			//Check in the seen list to see if index show up
+			if (seen[i] == index)
+				//If index is already in there, then we have used that slot
+				return;
+		}
+
+		//New slot in PHT being used, we take note
+		seen[i] = index;
+		counterSeen++;
 	}
-
-	//New slot in PHT being used, we take note
-	seen[i] = index;
-	counterSeen++;
-
 }
 
 void train_tour(uint32_t pc, uint8_t outcome)
