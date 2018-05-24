@@ -11,6 +11,7 @@
 
 #define PCBITS 8
 #define DEBUGMODE 0
+#define K20 20000
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
 uint8_t predict_huan(uint32_t pc);
@@ -48,7 +49,7 @@ int verbose;
 //
 //Gshare variables
 uint32_t history;
-char* pht; 
+char pht[K20]; 
 int PHTSIZE = 512;
 
 //Custom Variables
@@ -57,11 +58,11 @@ char* l2List[CUS_LOCALSIZE];
 
 
 //Logging variables
-int* seen;
+int seen[K20];
 int counterSeen = 0;
-uint32_t* log_pc  ;
-uint32_t* log_pat ;
-char 	* log_bool;
+uint32_t log_pc   [K20];
+uint32_t log_pat  [K20];
+char 	 log_bool [K20];
 int 	 log_inteferece;
 
 
@@ -95,11 +96,6 @@ init_predictor()
 	log_inteferece = 0;
 
 	PHTSIZE = 1 << ghistoryBits;
-	pht = malloc(sizeof(char) * PHTSIZE);
-	seen = malloc(sizeof(int) * PHTSIZE);
-	log_pc   = malloc(sizeof(uint32_t) * PHTSIZE);
-	log_pat  = malloc(sizeof(uint32_t) * PHTSIZE);
-	log_bool = malloc(sizeof(char) * PHTSIZE);
 
 	memset(pht, WN, (sizeof(char) * PHTSIZE));
 	memset(seen, 0, (sizeof(int) * PHTSIZE));
@@ -196,7 +192,7 @@ uint8_t predict_gshare(uint32_t pc)
 	uint32_t addr = pc & mask;
 	//printf ("hist: %d\naddr: %d\n", hist, addr);
 
-	unsigned int index = (hist ^ addr);
+	unsigned int index = (hist ^ addr) % PHTSIZE;
 
 	if (DEBUGMODE)
 	{
@@ -259,7 +255,7 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 	mask = mask << numMask >> numMask;
 	uint32_t hist = history & mask;
 	uint32_t addr = pc & mask;
-	unsigned int index = (hist ^ addr);
+	unsigned int index = (hist ^ addr) % PHTSIZE;
 	//printf("Index: %d\n", index);
 	//printf("Prediction: %d\n", pht[index]);
 	//printf("Outcome: %d\n", outcome);
@@ -317,11 +313,6 @@ void train_huan(uint32_t pc, uint8_t outcome)
 
 void clean()
 {
-	free(pht);
-	free(seen);
-	free(log_pc);
-	free(log_pat);
-	free(log_bool);
 	//Custom setup
 	int i = 0;
 	for (i = 0; i < CUS_LOCALSIZE; i++)
