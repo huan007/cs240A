@@ -123,6 +123,7 @@ main(int argc, char *argv[])
 
     // Make a prediction and compare with actual outcome
     uint8_t prediction = make_prediction(pc);
+	//fprintf(stderr, "********Prediction: %d\tOutcome: %d*******\n", prediction, outcome);
     if (prediction != outcome) {
       mispredictions++;
     }
@@ -140,8 +141,9 @@ main(int argc, char *argv[])
   printf("Incorrect:       %10d\n", mispredictions);
   float mispredict_rate = 100*((float)mispredictions / (float)num_branches);
   printf("Misprediction Rate: %7.3f\n", mispredict_rate);
-  fprintf(stderr, "PHT Usage: %d/%d slots used\n", slotsUsed(), getSize());
-  fprintf(stderr, "Interference: %d/%d slots was interfered\n", getInterference(), getSize());
+  int size = getSize();
+  fprintf(stderr, "PHT Usage: %d/%d slots used\n", slotsUsed(), size);
+  fprintf(stderr, "Interference: %d/%d slots was interfered\n", getInterference(), size);
 
   // Cleanup
   fclose(stream);

@@ -9,7 +9,7 @@
 #include <string.h>
 #include "predictor.h"
 
-#define PCBITS 8
+#define PCBITS 10
 #define DEBUG 0
 #define K20 20000
 uint8_t predict_gshare(uint32_t pc);
@@ -53,15 +53,19 @@ char pht[K20];
 int PHTSIZE = 2048;
 
 //Custom Variables
-uint32_t localTable[CUS_LOCALSIZE];
 char* l2List[CUS_LOCALSIZE];
 
+//Tournament vars
+uint32_t localTable[K20];
+char global[K20];
+char choser[K20];
+char localPre[K20];
 
 //Logging variables
 int seen[K20];
 int counterSeen = 0;
-uint32_t log_pc   [K20];
-uint32_t log_pat  [K20];
+char log_pc   [K20];
+char log_pat  [K20];
 char 	 log_bool [K20];
 int 	 log_inteferece;
 
@@ -103,6 +107,13 @@ init_predictor()
 	memset(log_pat, 0, (sizeof(uint32_t) * PHTSIZE));
 	memset(log_bool,0, (sizeof(char) * PHTSIZE));
 
+	//Tournament Setup
+	memset(localTable, 0, (sizeof(uint32_t) * K20));
+	memset(global, WN, (sizeof(char) * K20));
+	memset(choser, WN, (sizeof(char) * K20));
+	memset(localPre, WN, (sizeof(char) * K20));
+	
+
 	//Custom setup
 	int i = 0;
 	for (i = 0; i < CUS_LOCALSIZE; i++)
@@ -128,10 +139,9 @@ make_prediction(uint32_t pc)
 		case STATIC:
 			return TAKEN;
 		case GSHARE:
-			{
-				return predict_gshare(pc);
-			}
+			return predict_gshare(pc);
 		case TOURNAMENT:
+			return predict_tour(pc);
 		case CUSTOM:
 			return predict_huan(pc);
 		default:
@@ -161,8 +171,15 @@ train_predictor(uint32_t pc, uint8_t outcome)
 				return;
 			}
 		case TOURNAMENT:
+			{
+				train_tour(pc, outcome);
+				return;
+			}
 		case CUSTOM:
-			train_huan(pc, outcome);
+			{
+				train_huan(pc, outcome);
+				return;
+			}
 		default:
 			break;
 	}
@@ -220,7 +237,68 @@ uint8_t predict_gshare(uint32_t pc)
 
 uint8_t predict_tour(uint32_t pc)
 {
+	//Global 
+	uint32_t mask = -1;
+	int numMask = 32 - ghistoryBits;
+	mask = mask << numMask >> numMask;
+	uint32_t hist = history & mask;
+	int globalIndex = hist % 512;
 
+	//Choser
+	char resultGlobal = global[globalIndex];
+	char resultChoser = choser[globalIndex];
+
+	if (DEBUG)
+	{
+		fprintf(stderr, "----------Prediction Phase--------------\n");
+		fprintf(stderr, "GlobalIndex: %d\nglobal: %d\nchoser: %d\n", globalIndex, 
+					resultGlobal, resultChoser);
+	}
+
+	//Local
+	mask = -1;
+	numMask = 32 - pcIndexBits;
+	mask = mask << numMask >> numMask;
+	int localIndex = (pc & mask) % 1024;
+	//TODO: Need to modify later
+	uint32_t localPat = localTable[localIndex] % 1024;
+	char resultLocal = localPre[localPat];
+
+	if (DEBUG)
+	{
+		uint32_t temp = localPat;
+		fprintf(stderr, "localIndex: %d\nlocalPattern: ", localIndex);
+
+		
+		while (temp > 0)
+		{
+			if (temp & 1)
+				fprintf(stderr, "1");
+
+			else
+				fprintf(stderr, "0");
+
+			temp = temp >> 1;
+		}
+		fprintf(stderr, "\nlocal: %d\n", resultLocal);
+	}
+
+	char result;
+
+	//Choose result base on the choser
+	if (resultChoser > WN)
+		result = resultGlobal;
+	else
+		result = resultLocal;
+
+	if (DEBUG)
+		fprintf(stderr, "Final result: %d\n", result);
+
+	//Process result and return final answer
+	if (result > WN)
+		return TAKEN;
+	else
+		return NOTTAKEN;
 }
 
 uint8_t predict_huan(uint32_t pc)
@@ -234,9 +312,9 @@ uint8_t predict_huan(uint32_t pc)
 	//use addr to get the table
 	//hash hist into table 
 	mask = -1;
-	numMask = 32 - 4;
+	numMask = 32 - PCBITS;
 	mask = mask << numMask >> numMask;
-	int tableIndex = (hist & mask) ^ ( (hist >> 4) & mask); 
+	int tableIndex = (hist & mask) ^ ( (hist >> PCBITS) & mask); 
 	char* table = l2List[addr%CUS_LOCALSIZE];
 
 	if (table[tableIndex] > WN)
@@ -284,7 +362,115 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 
 void train_tour(uint32_t pc, uint8_t outcome)
 {
+	if (outcome != TAKEN && outcome != NOTTAKEN)
+		exit(-1);
 
+	//Global
+	uint32_t mask = -1;
+	int numMask = 32 - ghistoryBits;
+	mask = mask << numMask >> numMask;
+	uint32_t hist = history & mask;
+	unsigned int globalIndex = hist % 512;
+	
+	uint32_t resultGlobal = global[globalIndex];
+
+	if (DEBUG)
+	{
+		fprintf(stderr, "----------Training Phase--------------\n");
+		fprintf(stderr, "OUTCOME: %d\nGlobalIndex: ", outcome);
+		
+		unsigned int temp = globalIndex;
+		while (temp > 0)
+		{
+			if (temp & 1)
+				fprintf(stderr, "1");
+
+			else
+				fprintf(stderr, "0");
+
+			temp = temp >> 1;
+		}
+		fprintf(stderr, "\nGlobal: %d\n", resultGlobal);
+	}
+	//Local
+	mask = -1;
+	numMask = 32 - pcIndexBits;
+	mask = mask << numMask >> numMask;
+	int localIndex = (pc & mask) % 1024;
+	uint32_t localPat = localTable[localIndex] % 1024;
+	uint32_t resultLocal = localPre[localPat];
+
+	if (DEBUG)
+	{
+		uint32_t temp = localPat;
+		fprintf(stderr, "localIndex: %d\nlocalPattern: ", localIndex);
+
+		
+		while (temp > 0)
+		{
+			if (temp & 1)
+				fprintf(stderr, "1");
+
+			else
+				fprintf(stderr, "0");
+
+			temp = temp >> 1;
+		}
+		fprintf(stderr, "\nlocal: %d\n", resultLocal);
+	}
+
+	uint8_t outGlobal;
+	uint8_t outLocal;
+
+	//Process global's prediction
+	if (resultGlobal > WN)
+		outGlobal = TAKEN;
+	else
+		outGlobal = NOTTAKEN;
+
+	//Process local's prediction
+	if (resultLocal > WN)
+		outLocal = TAKEN;
+	else
+		outLocal = NOTTAKEN;
+
+	if (DEBUG)
+	{
+		fprintf(stderr, "outGlobal: %d\noutLocal:  %d\n", outGlobal, outLocal);	
+	}
+
+	//Update choice predictor
+	if (outGlobal == outLocal)
+	{
+		//Do nothing
+		if (DEBUG)
+		{
+			fprintf(stderr, "Choser kept the same\n");
+		}
+	}
+	//Global was correct
+	else if (outGlobal == outcome)
+		update(&(choser[globalIndex]), TRUE);
+	//Local was correct
+	else if (outLocal == outcome);
+		update(&(choser[globalIndex]), FALSE);
+
+	//Update pattern history register
+	history = (history << 1) + outcome;
+
+	//Update local and globals
+	update(&(global[globalIndex]), outcome);
+	update(&(localPre[localPat]), outcome);
+
+	if (DEBUG)
+	{
+		fprintf(stderr, "Update global: %d\nUpdate local: %d\n", global[globalIndex],
+					localPre[localPat]);
+		fprintf(stderr, "Updated Chose: %d\n", choser[globalIndex]);
+	}
+
+	//Update local's PHT
+	localTable[localIndex % 1024] = (localTable[localIndex % 1024] << 1) + outcome;
 }
 
 void train_huan(uint32_t pc, uint8_t outcome)
@@ -301,9 +487,9 @@ void train_huan(uint32_t pc, uint8_t outcome)
 	//use addr to get the table
 	//hash hist into table 
 	mask = -1;
-	numMask = 32 - 4;
+	numMask = 32 - PCBITS;
 	mask = mask << numMask >> numMask;
-	int tableIndex = (hist & mask) ^ ( (hist >> 4) & mask); 
+	int tableIndex = (hist & mask) ^ ( (hist >> PCBITS) & mask); 
 	char* table = l2List[addr%CUS_LOCALSIZE];
 
 	//Update pattern history register
@@ -315,6 +501,6 @@ void clean()
 {
 	//Custom setup
 	int i = 0;
-	for (i = 0; i < CUS_LOCALSIZE; i++)
-		free(l2List[i]);
+	//for (i = 0; i < CUS_LOCALSIZE; i++)
+	//	free(l2List[i]);
 }
