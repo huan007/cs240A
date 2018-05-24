@@ -9,7 +9,8 @@
 #include <string.h>
 #include "predictor.h"
 
-#define PCBITS 10
+#define PCBITS 9
+#define HISBITS 10
 #define DEBUG 0
 #define K20 20000
 uint8_t predict_gshare(uint32_t pc);
@@ -303,18 +304,24 @@ uint8_t predict_tour(uint32_t pc)
 
 uint8_t predict_huan(uint32_t pc)
 {
+	//Get history bits to selec entry
 	uint32_t mask = -1;
-	int numMask = 32 - PCBITS;
+	int numMask = 32 - HISBITS;
 	mask = mask << numMask >> numMask;
 	uint32_t hist = history & mask;
+
+	//Get PC bits to select table
+	mask = -1;
+	numMask = 32 - PCBITS;
+	mask = mask << numMask >> numMask;
 	uint32_t addr = pc & mask;
 
 	//use addr to get the table
 	//hash hist into table 
 	mask = -1;
-	numMask = 32 - PCBITS;
+	numMask = 32 - HISBITS;
 	mask = mask << numMask >> numMask;
-	int tableIndex = (hist & mask) ^ ( (hist >> PCBITS) & mask); 
+	int tableIndex = (hist & mask) ^ ( (hist >> HISBITS) & mask); 
 	char* table = l2List[addr%CUS_LOCALSIZE];
 
 	if (table[tableIndex] > WN)
@@ -478,18 +485,25 @@ void train_huan(uint32_t pc, uint8_t outcome)
 	if (outcome != TAKEN && outcome != NOTTAKEN)
 		exit(-1);
 	
+	//Get history bits to selec entry
 	uint32_t mask = -1;
-	int numMask = 32 - PCBITS;
+	int numMask = 32 - HISBITS;
 	mask = mask << numMask >> numMask;
 	uint32_t hist = history & mask;
+
+	//Get PC bits to select table
+	mask = -1;
+	numMask = 32 - PCBITS;
+	mask = mask << numMask >> numMask;
 	uint32_t addr = pc & mask;
 
 	//use addr to get the table
 	//hash hist into table 
 	mask = -1;
-	numMask = 32 - PCBITS;
+	numMask = 32 - HISBITS;
 	mask = mask << numMask >> numMask;
-	int tableIndex = (hist & mask) ^ ( (hist >> PCBITS) & mask); 
+	//Index into prediction table by XOR lower and higher half of history
+	int tableIndex = (hist & mask) ^ ( (hist >> HISBITS) & mask); 
 	char* table = l2List[addr%CUS_LOCALSIZE];
 
 	//Update pattern history register
