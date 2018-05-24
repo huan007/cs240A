@@ -20,9 +20,9 @@ void train_huan(uint32_t pc, uint8_t outcome);
 //
 // TODO:Student Information
 //
-const char *studentName = "NAME";
-const char *studentID   = "PID";
-const char *email       = "EMAIL";
+const char *studentName = "Huan Nguyen";
+const char *studentID   = "A12871523";
+const char *email       = "hpn007@ucsd.edu";
 
 //------------------------------------//
 //      Predictor Configuration       //
@@ -47,7 +47,8 @@ int verbose;
 //
 //Gshare variables
 uint32_t history;
-char pht[PHTSIZE]; 
+char* pht; 
+int PHTSIZE = 512;
 
 //Custom Variables
 uint32_t localTable[CUS_LOCALSIZE];
@@ -55,11 +56,11 @@ char* l2List[CUS_LOCALSIZE];
 
 
 //Logging variables
-int seen[PHTSIZE];
+int* seen;
 int counterSeen = 0;
-uint32_t log_pc  [PHTSIZE];
-uint32_t log_pat [PHTSIZE];
-char 	 log_bool[PHTSIZE];
+uint32_t* log_pc  ;
+uint32_t* log_pat ;
+char 	* log_bool;
 int 	 log_inteferece;
 
 
@@ -91,6 +92,15 @@ init_predictor()
 	//
 	history = 0;
 	log_inteferece = 0;
+
+	PHTSIZE = 1 << ghistoryBits;
+	pht = malloc(sizeof(char) * PHTSIZE);
+	seen = malloc(sizeof(int) * PHTSIZE);
+	log_pc   = malloc(sizeof(uint32_t) * PHTSIZE);
+	log_pat  = malloc(sizeof(uint32_t) * PHTSIZE);
+	log_bool = malloc(sizeof(char) * PHTSIZE);
+	fprintf(stderr, "Bits: %d\nSize: %d\n", ghistoryBits, getPHTSize());
+
 	memset(pht, WN, (sizeof(char) * PHTSIZE));
 	memset(seen, 0, (sizeof(int) * PHTSIZE));
 	memset(log_pc , 0, (sizeof(uint32_t) * PHTSIZE));
@@ -170,6 +180,11 @@ int slotsUsed()
 int getInterference()
 {
 	return log_inteferece;
+}
+
+int getPHTSize()
+{
+	return PHTSIZE;
 }
 
 uint8_t predict_gshare(uint32_t pc)
