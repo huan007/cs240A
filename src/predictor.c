@@ -10,7 +10,7 @@
 #include "predictor.h"
 
 #define PCBITS 10
-#define DEBUG 0
+#define DEBUG 1
 #define K20 20000
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
@@ -110,7 +110,7 @@ init_predictor()
 	//Tournament Setup
 	memset(localTable, 0, (sizeof(uint32_t) * K20));
 	memset(global, WN, (sizeof(char) * K20));
-	memset(choser, WN, (sizeof(char) * K20));
+	memset(choser, WT, (sizeof(char) * K20));
 	memset(localPre, WN, (sizeof(char) * K20));
 	
 
@@ -452,7 +452,7 @@ void train_tour(uint32_t pc, uint8_t outcome)
 	else if (outGlobal == outcome)
 		update(&(choser[globalIndex]), TRUE);
 	//Local was correct
-	else if (outLocal == outcome);
+	else if (outLocal == outcome)
 		update(&(choser[globalIndex]), FALSE);
 
 	//Update pattern history register
