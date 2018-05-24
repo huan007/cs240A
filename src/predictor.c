@@ -196,7 +196,7 @@ uint8_t predict_gshare(uint32_t pc)
 	uint32_t addr = pc & mask;
 	//printf ("hist: %d\naddr: %d\n", hist, addr);
 
-	unsigned int index = (hist ^ addr) % PHTSIZE;
+	unsigned int index = (hist ^ addr);
 
 	if (DEBUGMODE)
 	{
@@ -259,7 +259,7 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 	mask = mask << numMask >> numMask;
 	uint32_t hist = history & mask;
 	uint32_t addr = pc & mask;
-	unsigned int index = (hist ^ addr) % PHTSIZE;
+	unsigned int index = (hist ^ addr);
 	//printf("Index: %d\n", index);
 	//printf("Prediction: %d\n", pht[index]);
 	//printf("Outcome: %d\n", outcome);
