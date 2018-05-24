@@ -22,9 +22,9 @@ void train_huan(uint32_t pc, uint8_t outcome);
 //
 // TODO:Student Information
 //
-const char *studentName = "NAME";
-const char *studentID   = "PID";
-const char *email       = "EMAIL";
+const char *studentName = "Huan Nguyen";
+const char *studentID   = "A12871523";
+const char *email       = "hpn007@ucsd.edu";
 
 //------------------------------------//
 //      Predictor Configuration       //
@@ -60,9 +60,9 @@ char* l2List[CUS_LOCALSIZE];
 //Logging variables
 int seen[K20];
 int counterSeen = 0;
-uint32_t log_pc  [K20];
-uint32_t log_pat [K20];
-char 	 log_bool[K20];
+uint32_t log_pc   [K20];
+uint32_t log_pat  [K20];
+char 	 log_bool [K20];
 int 	 log_inteferece;
 
 
@@ -94,6 +94,9 @@ init_predictor()
 	//
 	history = 0;
 	log_inteferece = 0;
+
+	PHTSIZE = 1 << ghistoryBits;
+
 	memset(pht, WN, (sizeof(char) * PHTSIZE));
 	memset(seen, 0, (sizeof(int) * PHTSIZE));
 	memset(log_pc , 0, (sizeof(uint32_t) * PHTSIZE));
@@ -191,19 +194,22 @@ uint8_t predict_gshare(uint32_t pc)
 
 	unsigned int index = (hist ^ addr) % PHTSIZE;
 
-	//Log what is first seen at the pHT slot
-	if (log_pc[index] == 0 && log_pat[index] == 0)
+	if (DEBUG)
 	{
-		log_pc [index] = addr;
-		log_pat[index] = hist;
-	}
-	//Different PC or differet pattern map to the same slot
-	else if (log_pc[index] != addr || log_pat[index] != hist)
-	{
-		if (log_bool[index] == FALSE)
+		//Log what is first seen at the pHT slot
+		if (log_pc[index] == 0 && log_pat[index] == 0)
 		{
-			log_bool[index] = TRUE;
-			log_inteferece++;
+			log_pc [index] = addr;
+			log_pat[index] = hist;
+		}
+		//Different PC or differet pattern map to the same slot
+		else if (log_pc[index] != addr || log_pat[index] != hist)
+		{
+			if (log_bool[index] == FALSE)
+			{
+				log_bool[index] = TRUE;
+				log_inteferece++;
+			}
 		}
 	}
 	if (pht[index] > WN)
@@ -258,20 +264,22 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 	history = (history << 1) + outcome;
 	update(&(pht[index]), outcome);
 
-	//Logging
-	int i = 0;
-	for (i = 0; i < counterSeen; i++)
+	if (DEBUG)
 	{
-		//Check in the seen list to see if index show up
-		if (seen[i] == index)
-			//If index is already in there, then we have used that slot
-			return;
+		//Logging
+		int i = 0;
+		for (i = 0; i < counterSeen; i++)
+		{
+			//Check in the seen list to see if index show up
+			if (seen[i] == index)
+				//If index is already in there, then we have used that slot
+				return;
+		}
+
+		//New slot in PHT being used, we take note
+		seen[i] = index;
+		counterSeen++;
 	}
-
-	//New slot in PHT being used, we take note
-	seen[i] = index;
-	counterSeen++;
-
 }
 
 void train_tour(uint32_t pc, uint8_t outcome)
@@ -301,4 +309,12 @@ void train_huan(uint32_t pc, uint8_t outcome)
 	//Update pattern history register
 	history = (history << 1) + outcome;
 	update(&(table[tableIndex]), outcome);
+}
+
+void clean()
+{
+	//Custom setup
+	int i = 0;
+	for (i = 0; i < CUS_LOCALSIZE; i++)
+		free(l2List[i]);
 }

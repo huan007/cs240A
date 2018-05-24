@@ -74,4 +74,5 @@ void train_predictor(uint32_t pc, uint8_t outcome);
 int slotsUsed();
 int getInterference();
 int getSize();
+void clean();
 #endif
