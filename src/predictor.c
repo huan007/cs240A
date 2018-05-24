@@ -10,7 +10,7 @@
 #include "predictor.h"
 
 #define PCBITS 10
-#define DEBUG 1
+#define DEBUG 0
 #define K20 20000
 uint8_t predict_gshare(uint32_t pc);
 uint8_t predict_tour(uint32_t pc);
