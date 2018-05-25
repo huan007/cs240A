@@ -554,8 +554,37 @@ void train_huan(uint32_t pc, uint8_t outcome)
 
 void clean()
 {
-	//Custom setup
-	int i = 0;
-	//for (i = 0; i < CUS_LOCALSIZE; i++)
-	//	free(l2List[i]);
+	switch (bpType) {
+		case STATIC:
+			break;
+		case GSHARE:
+			{
+				//GShare vars
+				free(pht);
+				break;
+			}
+		case TOURNAMENT:
+			{
+				//Tournament Setup
+				free(localTable);
+				free(global);
+				free(choser);
+				free(localPre);
+				break;
+			}
+		case CUSTOM:
+			{
+				//Custom setup
+				//int i = 0;
+				//for (i = 0; i < CUS_LOCALSIZE; i++)
+				//	free(l2List[i]);
+			}
+		default:
+			break;
+	}
+
+	free(seen);
+	free(log_pc);
+	free(log_pat);
+	free(log_bool);
 }
