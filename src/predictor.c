@@ -50,24 +50,26 @@ int verbose;
 //
 //Gshare variables
 uint32_t history;
-char pht[K20]; 
-int PHTSIZE = 2048;
+char* pht; 
+unsigned int PHTSIZE = 2048;
+unsigned int PSIZE;
+unsigned int LSIZE;
 
 //Custom Variables
 char* l2List[CUS_LOCALSIZE];
 
 //Tournament vars
-uint32_t localTable[K20];
-char global[K20];
-char choser[K20];
-char localPre[K20];
+uint32_t* localTable;
+char* global;
+char* choser;
+char* localPre;
 
 //Logging variables
-int seen[K20];
+int* seen;
 int counterSeen = 0;
-char log_pc   [K20];
-char log_pat  [K20];
-char 	 log_bool [K20];
+char* log_pc  ;
+char* log_pat ;
+char* log_bool;
 int 	 log_inteferece;
 
 
@@ -100,28 +102,67 @@ init_predictor()
 	history = 0;
 	log_inteferece = 0;
 
+	//Gshare size
 	PHTSIZE = 1 << ghistoryBits;
 
-	memset(pht, WN, (sizeof(char) * PHTSIZE));
-	memset(seen, 0, (sizeof(int) * PHTSIZE));
-	memset(log_pc , 0, (sizeof(uint32_t) * PHTSIZE));
-	memset(log_pat, 0, (sizeof(uint32_t) * PHTSIZE));
-	memset(log_bool,0, (sizeof(char) * PHTSIZE));
+	//Tournament size
+	LSIZE = 1 << lhistoryBits;
+	PSIZE = 1 << pcIndexBits;
+	//Custom size
 
-	//Tournament Setup
-	memset(localTable, 0, (sizeof(uint32_t) * K20));
-	memset(global, WN, (sizeof(char) * K20));
-	memset(choser, WT, (sizeof(char) * K20));
-	memset(localPre, WN, (sizeof(char) * K20));
-	
+	switch (bpType) {
+		case STATIC:
+			break;
+		case GSHARE:
+			{
+				//GShare vars
+				pht = malloc (sizeof(char) * PHTSIZE);
+				memset(pht, WN, (sizeof(char) * PHTSIZE));
+				break;
+			}
+		case TOURNAMENT:
+			{
+				//Tournament vars
+				localTable = malloc (sizeof(uint32_t) * PSIZE);
+				global = malloc (sizeof(char) * PHTSIZE);
+				choser = malloc (sizeof(char) * PHTSIZE);
+				localPre = malloc(sizeof(char) * LSIZE);
 
-	//Custom setup
-	int i = 0;
-	for (i = 0; i < CUS_LOCALSIZE; i++)
-	{
-		l2List[i] = malloc(sizeof(char) * CUS_L2SIZE);
-		memset(l2List[i], WN, (sizeof(char) * CUS_L2SIZE));
+				//Tournament Setup
+				memset(localTable, 0, (sizeof(uint32_t) * PSIZE));
+				memset(global, WN, (sizeof(char) * PHTSIZE));
+				memset(choser, WT, (sizeof(char) * PHTSIZE));
+				memset(localPre, WN, (sizeof(char) * LSIZE));
+				break;
+			}
+		case CUSTOM:
+			{
+				//Custom setup
+				int i = 0;
+				for (i = 0; i < CUS_LOCALSIZE; i++)
+				{
+					l2List[i] = malloc(sizeof(char) * CUS_L2SIZE);
+					memset(l2List[i], WN, (sizeof(char) * CUS_L2SIZE));
+				}
+			}
+		default:
+			break;
 	}
+
+	//Logging variables
+	int* seen;
+	char* log_pc  ;
+	char* log_pat ;
+	char* log_bool;
+	seen = malloc(sizeof(int) * PHTSIZE);
+	log_pc = malloc(sizeof(char) * PHTSIZE);
+	log_pat = malloc(sizeof(char) * PHTSIZE);
+	log_bool = malloc(sizeof(char) * PHTSIZE);
+
+	memset(seen, 0, (sizeof(int) * PHTSIZE));
+	memset(log_pc , 0, (sizeof(char) * PHTSIZE));
+	memset(log_pat, 0, (sizeof(char) * PHTSIZE));
+	memset(log_bool,0, (sizeof(char) * PHTSIZE));
 }
 
 // Make a prediction for conditional branch instruction at PC 'pc'
