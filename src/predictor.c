@@ -284,7 +284,7 @@ uint8_t predict_tour(uint32_t pc)
 	int numMask = 32 - ghistoryBits;
 	mask = mask << numMask >> numMask;
 	uint32_t hist = history & mask;
-	int globalIndex = hist % 512;
+	int globalIndex = hist % PHTSIZE;
 
 	//Choser
 	char resultGlobal = global[globalIndex];
@@ -301,9 +301,9 @@ uint8_t predict_tour(uint32_t pc)
 	mask = -1;
 	numMask = 32 - pcIndexBits;
 	mask = mask << numMask >> numMask;
-	int localIndex = (pc & mask) % 1024;
+	int localIndex = (pc & mask) % PSIZE;
 	//TODO: Need to modify later
-	uint32_t localPat = localTable[localIndex] % 1024;
+	uint32_t localPat = localTable[localIndex] % LSIZE;
 	char resultLocal = localPre[localPat];
 
 	if (DEBUG)
