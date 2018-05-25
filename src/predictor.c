@@ -9,7 +9,7 @@
 #include <string.h>
 #include "predictor.h"
 
-#define PCBITS 9
+#define PCBITS 8
 #define HISBITS 10
 #define DEBUG 0
 #define K20 20000
@@ -343,6 +343,36 @@ uint8_t predict_tour(uint32_t pc)
 		return NOTTAKEN;
 }
 
+/*
+ * Variable used: 	history (history register) 
+ * 					l2List
+ *
+ * Number of bits used: 16,384 Bits (Same amount as GShare, technically still
+ * 						16Kb)
+ *
+ * I don't know the name for this predictor because I just came up with it.
+ * This predictor is built around the observation that for a typical program, 
+ * there are not so many branches and for each branch, there are only so many 
+ * patterns the branch can exhibit. 
+ *
+ * For each branch, I took the last 9 bits of PC and map it to a separate PPHT
+ * then I used 10 bits (last 10 branches result) of the history register to map
+ * a particular pattern in that isolated table. 10 bits is split into 2, lower
+ * and higher half and XOR together to create a unique mapping into 32 different
+ * pattern locations. Each spot is a 2-bit Saturating counter. 
+ *
+ * I set up the predictor this way to reduce aliasing between branches since
+ * each branch has its own separate table, there will be significantly less
+ * aliasing. The only time that there will be aliasing is when two or more
+ * branches map to the same PC spot (same lower 9 bits), which I assumed to be
+ * rarer than two branches collide in a global table. 
+ *
+ * Tables for branches: 256
+ * Spots in tables: 32
+ *
+ * # of Bits: 256 * 32 * 2 = 16,384
+ *
+ */
 uint8_t predict_huan(uint32_t pc)
 {
 	//Get history bits to selec entry

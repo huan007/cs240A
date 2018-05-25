@@ -26,7 +26,7 @@ extern const char *email;
 #define TAKEN     1
 #define FALSE 	  0
 #define TRUE 	  1
-#define CUS_LOCALSIZE 512
+#define CUS_LOCALSIZE 256
 #define CUS_L2SIZE 32
 
 // The Different Predictor Types
