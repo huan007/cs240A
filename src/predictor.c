@@ -9,8 +9,8 @@
 #include <string.h>
 #include "predictor.h"
 
-#define PCBITS 8
-#define HISBITS 10
+#define PCBITS 9
+#define HISBITS 8
 #define DEBUG 0
 #define K20 20000
 uint8_t predict_gshare(uint32_t pc);
@@ -356,8 +356,8 @@ uint8_t predict_tour(uint32_t pc)
  * patterns the branch can exhibit. 
  *
  * For each branch, I took the last 9 bits of PC and map it to a separate PPHT
- * then I used 10 bits (last 10 branches result) of the history register to map
- * a particular pattern in that isolated table. 10 bits is split into 2, lower
+ * then I used 8 bits (last 8 branches result) of the history register to map
+ * a particular pattern in that isolated table. 8 bits is split into 2, lower
  * and higher half and XOR together to create a unique mapping into 32 different
  * pattern locations. Each spot is a 2-bit Saturating counter. 
  *
@@ -367,10 +367,10 @@ uint8_t predict_tour(uint32_t pc)
  * branches map to the same PC spot (same lower 9 bits), which I assumed to be
  * rarer than two branches collide in a global table. 
  *
- * Tables for branches: 256
- * Spots in tables: 32
+ * Tables for branches: 512
+ * Spots in tables: 16
  *
- * # of Bits: 256 * 32 * 2 = 16,384
+ * # of Bits: 512 * 16 * 2 = 16,384
  *
  */
 uint8_t predict_huan(uint32_t pc)
